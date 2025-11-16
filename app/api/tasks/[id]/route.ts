@@ -1,5 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyToken } from "@/lib/auth";
+
+// Helper function to extract userId from request
+async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
+  try {
+    const cookies = request.cookies;
+    const token = cookies.get("authToken")?.value;
+
+    if (!token) {
+      return null;
+    }
+
+    const decoded = await verifyToken(token);
+    return decoded?.userId || null;
+  } catch (error) {
+    return null;
+  }
+}
 
 // PATCH /api/tasks/:id - Update a task
 export async function PATCH(
@@ -7,6 +25,15 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const userId = await getUserIdFromRequest(request);
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     const body = await request.json();
 
@@ -19,13 +46,20 @@ export async function PATCH(
     if (isToday !== undefined) updateData.isToday = isToday;
     if (isCompleted !== undefined) updateData.isCompleted = isCompleted;
 
-    // Check if task exists
+    // Check if task exists and belongs to user
     const existingTask = await prisma.task.findUnique({
       where: { id },
     });
 
     if (!existingTask) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    if (existingTask.userId !== userId) {
+      return NextResponse.json(
+        { error: "Forbidden - task belongs to another user" },
+        { status: 403 }
+      );
     }
 
     const updatedTask = await prisma.task.update({
@@ -49,15 +83,31 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const userId = await getUserIdFromRequest(request);
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
 
-    // Check if task exists
+    // Check if task exists and belongs to user
     const existingTask = await prisma.task.findUnique({
       where: { id },
     });
 
     if (!existingTask) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    if (existingTask.userId !== userId) {
+      return NextResponse.json(
+        { error: "Forbidden - task belongs to another user" },
+        { status: 403 }
+      );
     }
 
     await prisma.task.delete({
@@ -73,3 +123,4 @@ export async function DELETE(
     );
   }
 }
+

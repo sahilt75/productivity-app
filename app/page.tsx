@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { TaskCard } from "@/components/TaskCard";
 import { AddTaskModal } from "@/components/AddTaskModal";
 import { EditTaskModal } from "@/components/EditTaskModal";
 import { useToast } from "@/lib/toast";
+import { useAuth } from "@/lib/authContext";
 import { Task, Category } from "@/lib/types";
 
 export default function Home() {
+  const router = useRouter();
   const { addToast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   const [todayTasks, setTodayTasks] = useState<Task[]>([]);
   const [everythingElseTasks, setEverythingElseTasks] = useState<Task[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,15 +23,28 @@ export default function Home() {
   const [isMutating, setIsMutating] = useState(false);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
 
-  // Fetch tasks on mount
+  // Redirect to login if not authenticated
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    if (!authLoading && !user) {
+      router.push("/auth/login");
+    }
+  }, [user, authLoading, router]);
+
+  // Fetch tasks on mount and when user changes
+  useEffect(() => {
+    if (user) {
+      fetchTasks();
+    }
+  }, [user]);
 
   const fetchTasks = async () => {
     try {
       setIsLoading(true);
       const res = await fetch("/api/tasks");
+      if (res.status === 401) {
+        router.push("/auth/login");
+        return;
+      }
       if (!res.ok) throw new Error("Failed to fetch tasks");
       const data = await res.json();
       setTodayTasks(data.today || []);
@@ -209,7 +226,15 @@ export default function Home() {
       <Header onAddClick={() => setIsModalOpen(true)} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {isLoading ? (
+        {authLoading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">Loading...</p>
+          </div>
+        ) : !user ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">Redirecting to login...</p>
+          </div>
+        ) : isLoading ? (
           <div className="text-center py-12">
             <p className="text-gray-500">Loading tasks...</p>
           </div>

@@ -17,12 +17,22 @@ enum Category {
   ESSENTIALS
 }
 
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  tasks     Task[]
+}
+
 model Task {
   id          String   @id @default(uuid())
   title       String
   category    Category
   isToday     Boolean  @default(true)
   isCompleted Boolean  @default(false)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
