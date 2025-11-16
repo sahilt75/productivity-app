@@ -4,13 +4,21 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
+import { useAuth } from '@/lib/authContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // If already logged in, redirect to home
+  if (user) {
+    router.push('/');
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,14 +35,17 @@ export default function LoginPage() {
       if (!res.ok) {
         const data = await res.json();
         setError(data.error || 'Login failed');
+        setLoading(false);
         return;
       }
 
-      // Redirect to home page
-      router.push('/');
+      // Wait a moment for cookie to be set, then refresh auth
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Force refresh the page to pick up the new cookie
+      window.location.href = '/';
     } catch (err) {
       setError('An error occurred. Please try again.');
-    } finally {
       setLoading(false);
     }
   };

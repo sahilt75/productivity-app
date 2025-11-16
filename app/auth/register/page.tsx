@@ -4,15 +4,23 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/lib/authContext';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // If already logged in, redirect to home
+  if (user) {
+    router.push('/');
+    return null;
+  }
 
   const validateForm = () => {
     if (!email || !password || !confirmPassword) {
@@ -59,16 +67,19 @@ export default function RegisterPage() {
       if (!res.ok) {
         const data = await res.json();
         setError(data.error || 'Registration failed');
+        setLoading(false);
         return;
       }
 
       setSuccess('Account created! Redirecting...');
-      setTimeout(() => {
-        router.push('/');
-      }, 1500);
+      
+      // Wait a moment for cookie to be set, then refresh auth
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Force refresh the page to pick up the new cookie
+      window.location.href = '/';
     } catch (err) {
       setError('An error occurred. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
