@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, CheckCircle } from 'lucide-react';
@@ -17,10 +17,11 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   // If already logged in, redirect to home
-  if (user) {
-    router.push('/');
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   const validateForm = () => {
     if (!email || !password || !confirmPassword) {
