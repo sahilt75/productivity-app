@@ -67,24 +67,3 @@ export function Header({ onAddClick }: HeaderProps) {
     </header>
   );
 }
-
-            {user && !isLoading && (
-              <button
-                onClick={handleLogout}
-                className="
-                  inline-flex items-center gap-2 px-4 py-2
-                  text-gray-700 hover:bg-gray-100 rounded-lg font-medium
-                  transition
-                "
-                title="Logout"
-              >
-                <LogOut size={20} />
-                <span className="hidden sm:inline">Logout</span>
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-}
