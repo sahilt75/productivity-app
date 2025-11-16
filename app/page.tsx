@@ -222,42 +222,44 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header onAddClick={() => setIsModalOpen(true)} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-6xl mx-auto px-6 py-12">
         {authLoading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Loading...</p>
+          <div className="text-center py-20">
+            <p className="text-gray-500 font-medium">Loading...</p>
           </div>
         ) : !user ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Redirecting to login...</p>
+          <div className="text-center py-20">
+            <p className="text-gray-500 font-medium">Redirecting to login...</p>
           </div>
         ) : isLoading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Loading tasks...</p>
+          <div className="text-center py-20">
+            <p className="text-gray-500 font-medium">Loading tasks...</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Today Column (2/3 width on lg) */}
             <div className="lg:col-span-2">
               <div
-                className="bg-white rounded-lg shadow-sm p-6 min-h-96 transition-all"
+                className="rounded-2xl border border-gray-200 p-8 min-h-96 transition-all"
                 onDragOver={handleDragOver}
                 onDrop={handleDropOnToday}
               >
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  📌 Today
-                  <span className="text-sm font-normal text-gray-500">
-                    ({todayTasks.length})
-                  </span>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Today
                 </h2>
+                <p className="text-sm text-gray-500 mb-6 font-medium">
+                  {todayTasks.length} {todayTasks.length === 1 ? 'task' : 'tasks'}
+                </p>
 
                 {todayTasks.length === 0 ? (
-                  <p className="text-gray-400 text-center py-8">
-                    No tasks for today. Great job! 🎉
-                  </p>
+                  <div className="text-center py-12">
+                    <p className="text-gray-400 text-sm font-medium">
+                      All clear for today
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {todayTasks.map((task) => (
@@ -278,21 +280,23 @@ export default function Home() {
             {/* Everything Else Column (1/3 width on lg) */}
             <div>
               <div
-                className="bg-white rounded-lg shadow-sm p-6 sticky top-20 min-h-96 transition-all"
+                className="rounded-2xl border border-gray-200 p-8 sticky top-24 min-h-96 transition-all"
                 onDragOver={handleDragOver}
                 onDrop={handleDropOnEverythingElse}
               >
-                <h2 className="text-lg font-bold text-gray-900 mb-4">
-                  📋 Everything Else
-                  <span className="text-sm font-normal text-gray-500 block">
-                    ({everythingElseTasks.length})
-                  </span>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Backlog
                 </h2>
+                <p className="text-sm text-gray-500 mb-6 font-medium">
+                  {everythingElseTasks.length} {everythingElseTasks.length === 1 ? 'task' : 'tasks'}
+                </p>
 
                 {everythingElseTasks.length === 0 ? (
-                  <p className="text-gray-400 text-center py-8 text-sm">
-                    Nothing here yet
-                  </p>
+                  <div className="text-center py-12">
+                    <p className="text-gray-400 text-sm font-medium">
+                      Nothing in backlog
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {everythingElseTasks.map((task) => (

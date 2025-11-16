@@ -39,11 +39,11 @@ export function EditTaskModal({
   if (!isOpen || !task) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg w-96 max-w-full mx-4">
+    <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-2xl w-96 max-w-full mx-4">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900">Edit Task</h2>
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900">Edit Task</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition"
@@ -54,18 +54,18 @@ export function EditTaskModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Title Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Task Title <span className="text-red-500">*</span>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Task Title
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Buy groceries"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Update task name"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
               disabled={isLoading}
               autoFocus
             />
@@ -73,13 +73,13 @@ export function EditTaskModal({
 
           {/* Category Select */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category <span className="text-red-500">*</span>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Category
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as Category)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
               disabled={isLoading}
             >
               {CATEGORIES.map((cat) => (
@@ -91,21 +91,21 @@ export function EditTaskModal({
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md font-medium transition"
+              className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold transition duration-200"
               disabled={isLoading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2.5 text-white bg-gray-900 hover:bg-gray-800 rounded-lg font-semibold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading || !title.trim()}
             >
-              {isLoading ? "Saving..." : "Save Changes"}
+              {isLoading ? "Saving..." : "Update"}
             </button>
           </div>
         </form>
