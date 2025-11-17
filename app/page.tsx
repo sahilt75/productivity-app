@@ -8,11 +8,13 @@ import { AddTaskModal } from "@/components/AddTaskModal";
 import { EditTaskModal } from "@/components/EditTaskModal";
 import { useToast } from "@/lib/toast";
 import { useAuth } from "@/lib/authContext";
+import { useGlobalLoader } from "@/lib/useGlobalLoader";
 import { Task, Category } from "@/lib/types";
 
 export default function Home() {
   const router = useRouter();
   const { addToast } = useToast();
+  const { show: showLoader, hide: hideLoader } = useGlobalLoader();
   const { user, isLoading: authLoading } = useAuth();
   const [todayTasks, setTodayTasks] = useState<Task[]>([]);
   const [everythingElseTasks, setEverythingElseTasks] = useState<Task[]>([]);
@@ -63,7 +65,7 @@ export default function Home() {
     isToday: boolean
   ) => {
     try {
-      setIsMutating(true);
+      showLoader();
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -83,12 +85,13 @@ export default function Home() {
       console.error("Failed to create task:", error);
       addToast("Failed to create task", "error");
     } finally {
-      setIsMutating(false);
+      hideLoader();
     }
   };
 
   const handleToggleComplete = async (id: string, completed: boolean) => {
     try {
+      showLoader();
       const res = await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -102,6 +105,8 @@ export default function Home() {
     } catch (error) {
       console.error("Failed to toggle task:", error);
       addToast("Failed to update task", "error");
+    } finally {
+      hideLoader();
     }
   };
 
@@ -116,7 +121,7 @@ export default function Home() {
     category: Category
   ) => {
     try {
-      setIsMutating(true);
+      showLoader();
       const res = await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -132,7 +137,7 @@ export default function Home() {
       console.error("Failed to update task:", error);
       addToast("Failed to update task", "error");
     } finally {
-      setIsMutating(false);
+      hideLoader();
     }
   };
 
@@ -140,6 +145,7 @@ export default function Home() {
     if (!confirm("Delete this task?")) return;
 
     try {
+      showLoader();
       const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete task");
       setTodayTasks(todayTasks.filter((t) => t.id !== id));
@@ -150,17 +156,29 @@ export default function Home() {
     } catch (error) {
       console.error("Failed to delete task:", error);
       addToast("Failed to delete task", "error");
+    } finally {
+      hideLoader();
     }
   };
 
   const updateTaskInState = (id: string, updated: Task) => {
     const inToday = todayTasks.some((t) => t.id === id);
     if (inToday) {
-      setTodayTasks(todayTasks.map((t) => (t.id === id ? updated : t)));
+      // Remove the task and re-add it, moving completed tasks to bottom
+      const filtered = todayTasks.filter((t) => t.id !== id);
+      if (updated.isCompleted) {
+        setTodayTasks([...filtered, updated]);
+      } else {
+        setTodayTasks([updated, ...filtered]);
+      }
     } else {
-      setEverythingElseTasks(
-        everythingElseTasks.map((t) => (t.id === id ? updated : t))
-      );
+      // Remove the task and re-add it, moving completed tasks to bottom
+      const filtered = everythingElseTasks.filter((t) => t.id !== id);
+      if (updated.isCompleted) {
+        setEverythingElseTasks([...filtered, updated]);
+      } else {
+        setEverythingElseTasks([updated, ...filtered]);
+      }
     }
   };
 
@@ -222,96 +240,93 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#FBFCFE]">
       <Header onAddClick={() => setIsModalOpen(true)} />
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         {authLoading ? (
           <div className="text-center py-20">
-            <p className="text-gray-500 font-medium">Loading...</p>
+            <p className="text-gray-600 font-medium">Loading...</p>
           </div>
         ) : !user ? (
           <div className="text-center py-20">
-            <p className="text-gray-500 font-medium">Redirecting to login...</p>
+            <p className="text-gray-600 font-medium">Redirecting to login...</p>
           </div>
         ) : isLoading ? (
           <div className="text-center py-20">
-            <p className="text-gray-500 font-medium">Loading tasks...</p>
+            <p className="text-gray-600 font-medium">Loading tasks...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Today Column (2/3 width on lg) */}
-            <div className="lg:col-span-2">
-              <div
-                className="rounded-2xl border border-gray-200 p-8 min-h-96 transition-all"
-                onDragOver={handleDragOver}
-                onDrop={handleDropOnToday}
-              >
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Today
-                </h2>
-                <p className="text-sm text-gray-500 mb-6 font-medium">
-                  {todayTasks.length} {todayTasks.length === 1 ? 'task' : 'tasks'}
-                </p>
+          <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6 lg:gap-8">
+            {/* Today Column (Primary - Pure White) */}
+            <div
+              className="relative rounded-2xl border border-blue-100 bg-white shadow-[0_8px_30px_rgba(59,130,246,0.10)] p-8 min-h-96 transition-all hover:shadow-[0_10px_40px_rgba(59,130,246,0.12)] hover:-translate-y-0.5"
+              onDragOver={handleDragOver}
+              onDrop={handleDropOnToday}
+            >
+              <div className="absolute left-0 top-0 h-full w-1 bg-blue-400 rounded-l-2xl"></div>
+              <h2 className="text-xl font-semibold tracking-tight text-gray-800 mb-1">
+                Today
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">
+                {todayTasks.length} {todayTasks.length === 1 ? 'task' : 'tasks'}
+              </p>
 
-                {todayTasks.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-gray-400 text-sm font-medium">
-                      All clear for today
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {todayTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onEdit={handleEditTask}
-                        onDelete={handleDeleteTask}
-                        onToggleComplete={handleToggleComplete}
-                        onDragStart={handleDragStart}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+              {todayTasks.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-400 text-sm font-medium">
+                    All clear for today
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-0">
+                  {todayTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onEdit={handleEditTask}
+                      onDelete={handleDeleteTask}
+                      onToggleComplete={handleToggleComplete}
+                      onDragStart={handleDragStart}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Everything Else Column (1/3 width on lg) */}
-            <div>
-              <div
-                className="rounded-2xl border border-gray-200 p-8 sticky top-24 min-h-96 transition-all"
-                onDragOver={handleDragOver}
-                onDrop={handleDropOnEverythingElse}
-              >
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Backlog
-                </h2>
-                <p className="text-sm text-gray-500 mb-6 font-medium">
-                  {everythingElseTasks.length} {everythingElseTasks.length === 1 ? 'task' : 'tasks'}
-                </p>
+            {/* Everything Else Column (Secondary - Subtle White) */}
+            <div
+              className="rounded-2xl border border-gray-100 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-8 min-h-96 transition-all lg:sticky lg:top-24 hover:shadow-[0_6px_25px_rgba(0,0,0,0.05)]"
+              onDragOver={handleDragOver}
+              onDrop={handleDropOnEverythingElse}
+            >
+              <h2 className="text-xl font-semibold tracking-tight text-gray-800 mb-1">
+                Everything Else
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">
+                {everythingElseTasks.length} {everythingElseTasks.length === 1 ? 'task' : 'tasks'}
+              </p>
 
-                {everythingElseTasks.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-gray-400 text-sm font-medium">
-                      Nothing in backlog
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {everythingElseTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onEdit={handleEditTask}
-                        onDelete={handleDeleteTask}
-                        onToggleComplete={handleToggleComplete}
-                        onDragStart={handleDragStart}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+              {everythingElseTasks.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-400 text-sm font-medium">
+                    Nothing here yet
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-0">
+                  {everythingElseTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onEdit={handleEditTask}
+                      onDelete={handleDeleteTask}
+                      onToggleComplete={handleToggleComplete}
+                      onDragStart={handleDragStart}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

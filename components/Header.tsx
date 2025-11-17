@@ -18,30 +18,30 @@ export function Header({ onAddClick }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <header className="bg-[#FBFCFE] border-b border-gray-200 sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
         {/* Logo/Title */}
         <div className="flex flex-col">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Pratyah</h1>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">Task Management</p>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 tracking-tight">Pratyah</h1>
+          <p className="text-xs text-gray-500 font-medium mt-1">Focus on what matters today</p>
         </div>
 
         {/* Right - User Info, Add Task and Logout Buttons */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           {user && !isLoading && (
             <div className="text-sm text-gray-600 font-medium hidden sm:block">
               {user.email}
             </div>
           )}
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onAddClick}
               className="
-                inline-flex items-center gap-2 px-5 py-2.5
-                bg-gray-900 text-white rounded-lg font-semibold text-sm
-                hover:bg-gray-800 transition duration-200
-                active:scale-95
+                inline-flex items-center gap-2 px-4 sm:px-5 py-2
+                bg-blue-600 text-white rounded-lg font-semibold text-sm
+                hover:bg-blue-700 transition duration-200
+                active:scale-95 shadow-lg shadow-blue-200
               "
             >
               <Plus size={18} strokeWidth={2.5} />
@@ -53,7 +53,7 @@ export function Header({ onAddClick }: HeaderProps) {
                 onClick={handleLogout}
                 className="
                   inline-flex items-center justify-center
-                  p-2 text-gray-600 hover:text-gray-900
+                  p-2 text-gray-600 hover:text-gray-800
                   hover:bg-gray-100 rounded-lg transition duration-200
                 "
                 title="Logout"
