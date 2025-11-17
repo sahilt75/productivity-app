@@ -55,7 +55,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
         <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">Welcome Back</h1>
-        <p className="text-center text-gray-600 mb-6">Log in to your Pratyah account</p>
+        <p className="text-center text-gray-600 mb-6">Log in to your Nitya account</p>
 
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pratyah - Productivity App",
+  title: "Nitya - Productivity App",
   description: "Focus on what matters today",
 };
 
