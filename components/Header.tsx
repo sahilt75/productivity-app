@@ -22,7 +22,7 @@ export function Header({ onAddClick }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
         {/* Logo/Title */}
         <div className="flex flex-col">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 tracking-tight">Pratyah</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 tracking-tight">Nitya</h1>
           <p className="text-xs text-gray-500 font-medium mt-1">Focus on what matters today</p>
         </div>
 
