@@ -187,6 +187,28 @@ export default function Home() {
     setDraggedTask(task);
   };
 
+  // Handle touch-based drop by checking the element at the touch coordinates
+  const handleTouchDrop = async (x: number, y: number) => {
+    if (!draggedTask) return;
+    const el = document.elementFromPoint(x, y) as HTMLElement | null;
+    if (!el) {
+      setDraggedTask(null);
+      return;
+    }
+
+    if (el.closest('[data-drop-target="today"]')) {
+      await handleDropOnToday();
+      return;
+    }
+
+    if (el.closest('[data-drop-target="everythingElse"]')) {
+      await handleDropOnEverythingElse();
+      return;
+    }
+
+    setDraggedTask(null);
+  };
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
@@ -263,6 +285,7 @@ export default function Home() {
               className="relative rounded-2xl border border-blue-100 bg-white shadow-[0_8px_30px_rgba(59,130,246,0.10)] p-8 min-h-96 transition-all hover:shadow-[0_10px_40px_rgba(59,130,246,0.12)] hover:-translate-y-0.5"
               onDragOver={handleDragOver}
               onDrop={handleDropOnToday}
+              data-drop-target="today"
             >
               <div className="absolute left-0 top-0 h-full w-1 bg-blue-400 rounded-l-2xl"></div>
               <h2 className="text-xl font-semibold tracking-tight text-gray-800 mb-1">
@@ -288,6 +311,7 @@ export default function Home() {
                       onDelete={handleDeleteTask}
                       onToggleComplete={handleToggleComplete}
                       onDragStart={handleDragStart}
+                      onTouchDrop={handleTouchDrop}
                     />
                   ))}
                 </div>
@@ -299,6 +323,7 @@ export default function Home() {
               className="rounded-2xl border border-gray-100 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-8 min-h-96 transition-all lg:sticky lg:top-24 hover:shadow-[0_6px_25px_rgba(0,0,0,0.05)]"
               onDragOver={handleDragOver}
               onDrop={handleDropOnEverythingElse}
+              data-drop-target="everythingElse"
             >
               <h2 className="text-xl font-semibold tracking-tight text-gray-800 mb-1">
                 Everything Else
@@ -323,6 +348,7 @@ export default function Home() {
                       onDelete={handleDeleteTask}
                       onToggleComplete={handleToggleComplete}
                       onDragStart={handleDragStart}
+                      onTouchDrop={handleTouchDrop}
                     />
                   ))}
                 </div>
