@@ -6,6 +6,8 @@ import { Header } from "@/components/Header";
 import { TaskCard } from "@/components/TaskCard";
 import { AddTaskModal } from "@/components/AddTaskModal";
 import { EditTaskModal } from "@/components/EditTaskModal";
+import { TodayProgressBar } from "@/components/TodayProgressBar";
+import { CelebrationModal } from "@/components/CelebrationModal";
 import { useToast } from "@/lib/toast";
 import { useAuth } from "@/lib/authContext";
 import { useGlobalLoader } from "@/lib/useGlobalLoader";
@@ -24,6 +26,9 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMutating, setIsMutating] = useState(false);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [celebrationShown, setCelebrationShown] = useState(false);
+  const [showCelebrationModal, setShowCelebrationModal] = useState(false);
+  const [celebrationPercentage, setCelebrationPercentage] = useState(0);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -38,6 +43,25 @@ export default function Home() {
       fetchTasks();
     }
   }, [user]);
+
+  // Check for task completion and show celebration
+  useEffect(() => {
+    if (todayTasks.length > 0) {
+      const completedCount = todayTasks.filter((t) => t.isCompleted).length;
+      const percentage = Math.round((completedCount / todayTasks.length) * 100);
+      const allCompleted = todayTasks.every((t) => t.isCompleted);
+
+      if (allCompleted && percentage >= 80 && !celebrationShown) {
+        setCelebrationShown(true);
+        setCelebrationPercentage(percentage);
+        setShowCelebrationModal(true);
+      } else if (!allCompleted && celebrationShown) {
+        // Reset celebration flag if tasks are no longer all completed
+        setCelebrationShown(false);
+        setShowCelebrationModal(false);
+      }
+    }
+  }, [todayTasks, celebrationShown]);
 
   const fetchTasks = async () => {
     try {
@@ -264,6 +288,12 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#FBFCFE]">
       <Header onAddClick={() => setIsModalOpen(true)} />
+      
+      <CelebrationModal
+        isOpen={showCelebrationModal}
+        percentage={celebrationPercentage}
+        onClose={() => setShowCelebrationModal(false)}
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         {authLoading ? (
@@ -281,42 +311,64 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6 lg:gap-8">
             {/* Today Column (Primary - Pure White) */}
-            <div
-              className="relative rounded-2xl border border-blue-100 bg-white shadow-[0_8px_30px_rgba(59,130,246,0.10)] p-8 min-h-96 transition-all hover:shadow-[0_10px_40px_rgba(59,130,246,0.12)] hover:-translate-y-0.5"
-              onDragOver={handleDragOver}
-              onDrop={handleDropOnToday}
-              data-drop-target="today"
-            >
-              <div className="absolute left-0 top-0 h-full w-1 bg-blue-400 rounded-l-2xl"></div>
-              <h2 className="text-xl font-semibold tracking-tight text-gray-800 mb-1">
-                Today
-              </h2>
-              <p className="text-sm text-gray-500 mb-6">
-                {todayTasks.length} {todayTasks.length === 1 ? 'task' : 'tasks'}
-              </p>
-
-              {todayTasks.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-400 text-sm font-medium">
-                    All clear for today
+            {(() => {
+              const completedCount = todayTasks.filter((t) => t.isCompleted).length;
+              const percentage = todayTasks.length === 0 ? 0 : Math.round((completedCount / todayTasks.length) * 100);
+              const allCompleted = todayTasks.length > 0 && todayTasks.every((t) => t.isCompleted) && percentage >= 80;
+              
+              return (
+                <div
+                  className={`relative rounded-2xl border p-8 min-h-96 transition-all ${
+                    allCompleted
+                      ? "bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-green-200 shadow-[0_8px_30px_rgba(52,211,153,0.15)]"
+                      : "bg-white border-blue-100 shadow-[0_8px_30px_rgba(59,130,246,0.10)]"
+                  } hover:${
+                    allCompleted
+                      ? "shadow-[0_10px_40px_rgba(52,211,153,0.2)]"
+                      : "shadow-[0_10px_40px_rgba(59,130,246,0.12)]"
+                  } hover:-translate-y-0.5`}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDropOnToday}
+                  data-drop-target="today"
+                >
+                  <div className={`absolute left-0 top-0 h-full w-1 rounded-l-2xl ${
+                    allCompleted ? "bg-green-400" : "bg-blue-400"
+                  }`}></div>
+                  <h2 className="text-xl font-semibold tracking-tight text-gray-800 mb-1">
+                    Today
+                  </h2>
+                  <p className="text-sm text-gray-500 mb-6">
+                    {todayTasks.length} {todayTasks.length === 1 ? 'task' : 'tasks'}
                   </p>
+
+                  {todayTasks.length > 0 && (
+                    <TodayProgressBar completed={completedCount} total={todayTasks.length} />
+                  )}
+
+                  {todayTasks.length === 0 ? (
+                    <div className="text-center py-12">
+                      <p className="text-gray-400 text-sm font-medium">
+                        All clear for today
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-0">
+                      {todayTasks.map((task) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onEdit={handleEditTask}
+                          onDelete={handleDeleteTask}
+                          onToggleComplete={handleToggleComplete}
+                          onDragStart={handleDragStart}
+                          onTouchDrop={handleTouchDrop}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="space-y-0">
-                  {todayTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onEdit={handleEditTask}
-                      onDelete={handleDeleteTask}
-                      onToggleComplete={handleToggleComplete}
-                      onDragStart={handleDragStart}
-                      onTouchDrop={handleTouchDrop}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+              );
+            })()}
 
             {/* Everything Else Column (Secondary - Subtle White) */}
             <div
